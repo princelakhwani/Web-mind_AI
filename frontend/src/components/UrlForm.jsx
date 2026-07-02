@@ -15,6 +15,7 @@ import {
 
 export default function UrlForm({ onIndexed }) {
   const [url, setUrl] = useState("");
+  const [maxPages, setMaxPages] = useState(20);
 
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +49,7 @@ export default function UrlForm({ onIndexed }) {
 
       await api.post("/index", {
         url,
+        max_pages: maxPages,
       });
 
       const interval = setInterval(async () => {
@@ -68,24 +70,20 @@ export default function UrlForm({ onIndexed }) {
                 pagesIndexed: res.data.result.pages_indexed,
                 chunks: res.data.result.chunks,
                 llm: res.data.result.llm,
-                embeddingModel:
-                  res.data.result.embedding_model,
+                embeddingModel: res.data.result.embedding_model,
               });
 
               onIndexed(url);
             }
           }
-        } catch (err) {
+        } catch {
           clearInterval(interval);
-
           setLoading(false);
-
           alert("Indexing failed.");
         }
       }, 500);
-    } catch (err) {
+    } catch {
       setLoading(false);
-
       alert("Failed to start indexing.");
     }
   }
@@ -101,10 +99,7 @@ export default function UrlForm({ onIndexed }) {
 
         <div>
           <h2>Index Website</h2>
-
-          <p>
-            Build your AI knowledge base
-          </p>
+          <p>Build your AI knowledge base</p>
         </div>
 
       </div>
@@ -113,6 +108,7 @@ export default function UrlForm({ onIndexed }) {
         className="url-form"
         onSubmit={handleSubmit}
       >
+
         <input
           type="url"
           placeholder="https://python.langchain.com"
@@ -120,32 +116,49 @@ export default function UrlForm({ onIndexed }) {
           onChange={(e) => setUrl(e.target.value)}
         />
 
-        <button
-          disabled={loading}
-        >
+        <div className="page-selector">
+
+          <select
+            value={maxPages}
+            onChange={(e) =>
+              setMaxPages(Number(e.target.value))
+            }
+          >
+            <option value={20}>20 Pages</option>
+            <option value={50}>50 Pages</option>
+            <option value={100}>100 Pages</option>
+            <option value={250}>250 Pages</option>
+            <option value={500}>500 Pages</option>
+            <option value={999999}>Unlimited</option>
+          </select>
+
+        </div>
+
+        <button disabled={loading}>
+
           {loading ? (
             <>
               <LoaderCircle
                 className="spin"
                 size={18}
               />
-
               Indexing...
             </>
           ) : (
             <>
-              🚀 Index Website
+              🚀 Index
             </>
           )}
+
         </button>
+
       </form>
 
       {loading && (
+
         <div className="progress-card">
 
-          <h3>
-            🌐 Crawling Website
-          </h3>
+          <h3>🌐 Crawling Website</h3>
 
           <div className="progress-bar">
 
@@ -159,41 +172,32 @@ export default function UrlForm({ onIndexed }) {
           </div>
 
           <p>
-            <strong>
-              {progress.percentage}%
-            </strong>{" "}
-            Complete
+            <strong>{progress.percentage}%</strong> Complete
           </p>
 
           <p>
             {progress.current} / {progress.total} Pages Indexed
           </p>
 
-          <small>
-            {progress.page}
-          </small>
+          <small>{progress.page}</small>
 
         </div>
+
       )}
 
       {stats && (
+
         <div className="website-info">
 
           <div className="success">
 
-            <CheckCircle2
-              size={24}
-            />
+            <CheckCircle2 size={24} />
 
             <div>
 
-              <h3>
-                Website Indexed Successfully
-              </h3>
+              <h3>Website Indexed Successfully</h3>
 
-              <p>
-                {stats.website}
-              </p>
+              <p>{stats.website}</p>
 
             </div>
 
@@ -202,78 +206,39 @@ export default function UrlForm({ onIndexed }) {
           <div className="info-grid">
 
             <div className="info-item">
-
-              <FileText size={18} />
-
-              <span>
-                Pages Found
-              </span>
-
-              <strong>
-                {stats.pagesFound}
-              </strong>
-
+              <FileText size={18}/>
+              <span>Pages Found</span>
+              <strong>{stats.pagesFound}</strong>
             </div>
 
             <div className="info-item">
-
-              <Database size={18} />
-
-              <span>
-                Pages Indexed
-              </span>
-
-              <strong>
-                {stats.pagesIndexed}
-              </strong>
-
+              <Database size={18}/>
+              <span>Pages Indexed</span>
+              <strong>{stats.pagesIndexed}</strong>
             </div>
 
             <div className="info-item">
-
-              <Boxes size={18} />
-
-              <span>
-                Chunks
-              </span>
-
-              <strong>
-                {stats.chunks}
-              </strong>
-
+              <Boxes size={18}/>
+              <span>Chunks</span>
+              <strong>{stats.chunks}</strong>
             </div>
 
             <div className="info-item">
-
-              <BrainCircuit size={18} />
-
-              <span>
-                LLM
-              </span>
-
-              <strong>
-                {stats.llm}
-              </strong>
-
+              <BrainCircuit size={18}/>
+              <span>LLM</span>
+              <strong>{stats.llm}</strong>
             </div>
 
             <div className="info-item">
-
-              <Globe size={18} />
-
-              <span>
-                Embedding
-              </span>
-
-              <strong>
-                {stats.embeddingModel}
-              </strong>
-
+              <Globe size={18}/>
+              <span>Embedding</span>
+              <strong>{stats.embeddingModel}</strong>
             </div>
 
           </div>
 
         </div>
+
       )}
 
     </div>

@@ -68,7 +68,10 @@ def index(request: URLRequest):
 
     thread = threading.Thread(
         target=index_website,
-        args=(request.url,),
+        args=(
+            request.url,
+            request.max_pages,
+        ),
         daemon=True,
     )
 

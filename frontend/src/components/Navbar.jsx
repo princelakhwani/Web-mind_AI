@@ -1,49 +1,36 @@
-import { Globe2 } from "lucide-react";
+import "../styles/navbar.css";
+
+import { BrainCircuit } from "lucide-react";
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-8">
+    <header className="navbar">
 
-        {/* Logo */}
+      <div className="navbar-container">
 
-        <div className="flex items-center gap-4">
+        <div className="navbar-logo">
 
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg">
-
-            <Globe2 size={28} />
-
+          <div className="logo-icon">
+            <BrainCircuit size={24} />
           </div>
 
           <div>
-
-            <h1 className="text-2xl font-bold text-slate-900">
-              Web-Mind AI
-            </h1>
-
-            <p className="text-sm text-slate-500">
-              AI Website Research Assistant
-            </p>
-
+            <h2>Web-Mind AI</h2>
+            <p>AI Website Research Assistant</p>
           </div>
 
         </div>
 
-        {/* Status */}
+        <div className="navbar-status">
 
-        <div className="flex items-center gap-6">
+          <span className="status-dot"></span>
 
-          <div className="rounded-full border border-green-200 bg-green-50 px-5 py-2">
-
-            <span className="font-medium text-green-600">
-              🟢 Local AI
-            </span>
-
-          </div>
+          <span>Local AI</span>
 
         </div>
 
       </div>
+
     </header>
   );
 }

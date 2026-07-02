@@ -8,11 +8,11 @@ crawler = WebsiteCrawler()
 rag = RAGPipeline()
 
 
-def index_website(url: str):
+def index_website(url: str, max_pages: int):
     try:
         pages = crawler.crawl(
             url,
-            max_pages=20,
+            max_pages=max_pages,
         )
 
         progress.start(len(pages))
