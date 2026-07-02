@@ -1,12 +1,24 @@
-import { useState } from "react";
+import "../styles/chatwindow.css";
+
+import { useState, useEffect, useRef } from "react";
+import { Send, Trash2, Bot } from "lucide-react";
 
 import api from "../services/api";
 import Message from "./Message";
+import Loader from "./Loader";
 
 export default function ChatWindow({ indexed }) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([]);
+
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
 
   async function askAI(e) {
     e.preventDefault();
@@ -45,14 +57,12 @@ export default function ChatWindow({ indexed }) {
           sources: response.data.sources || [],
         },
       ]);
-    } catch (err) {
-      console.error(err);
-
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "❌ Failed to get response.",
+          content: "Failed to generate answer.",
           sources: [],
         },
       ]);
@@ -61,67 +71,121 @@ export default function ChatWindow({ indexed }) {
     }
   }
 
+  function clearChat() {
+    setMessages([]);
+  }
+
   return (
-    <section className="mt-10 w-full">
+    <div className="chat-card">
 
-      <h2 className="mb-6 text-2xl font-bold">
-        💬 AI Chat
-      </h2>
+      <div className="chat-header">
 
-      <div className="mb-8 h-[550px] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+        <div className="chat-title">
 
-        {messages.length === 0 ? (
-          <div className="mt-40 text-center text-slate-500">
-            Ask your first question...
+          <div className="chat-icon">
+
+            <Bot size={28} />
+
           </div>
-        ) : (
-          messages.map((msg, index) => (
-            <Message
-              key={index}
-              role={msg.role}
-              content={msg.content}
-              sources={msg.sources}
-            />
-          ))
+
+          <div>
+
+            <h2>AI Assistant</h2>
+
+            <p>
+              Ask anything from your indexed website
+            </p>
+
+          </div>
+
+        </div>
+
+        <button
+          className="clear-btn"
+          onClick={clearChat}
+        >
+          <Trash2 size={18} />
+
+          Clear Chat
+
+        </button>
+
+      </div>
+
+      <div className="chat-body">
+
+        {messages.length === 0 && (
+
+          <div className="empty-chat">
+
+            <div className="empty-icon">
+              🤖
+            </div>
+
+            <h2>
+              Ask me anything
+            </h2>
+
+            <p>
+              Once your website is indexed,
+              I can answer questions using
+              only that website's content.
+            </p>
+
+          </div>
+
         )}
 
-        {loading && (
-          <div className="flex items-center gap-3 animate-pulse text-cyan-400">
-            🤖
-            <span>Thinking...</span>
-          </div>
-        )}
+        {messages.map((msg, index) => (
+
+          <Message
+            key={index}
+            role={msg.role}
+            content={msg.content}
+            sources={msg.sources}
+          />
+
+        ))}
+
+        {loading && <Loader />}
+
+        <div ref={bottomRef} />
 
       </div>
 
       <form
+        className="chat-input"
         onSubmit={askAI}
-        className="flex gap-4"
       >
 
         <input
           type="text"
           value={question}
           disabled={!indexed || loading}
-          onChange={(e) => setQuestion(e.target.value)}
           placeholder={
             indexed
-              ? "Ask anything about the indexed website..."
+              ? "Ask your question..."
               : "Index a website first..."
           }
-          className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-5 py-4 outline-none focus:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+          onChange={(e) =>
+            setQuestion(e.target.value)
+          }
         />
 
         <button
-          type="submit"
           disabled={!indexed || loading}
-          className="rounded-xl bg-cyan-500 px-8 font-semibold transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Thinking..." : "🚀 Send"}
+
+          <Send size={18} />
+
+          {loading
+            ? "Thinking..."
+            : "Send"}
+
         </button>
 
       </form>
 
-    </section>
+    </div>
   );
 }

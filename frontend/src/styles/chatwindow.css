@@ -1,0 +1,231 @@
+.chat-card{
+
+    width:100%;
+
+    height:760px;
+
+    background:white;
+
+    border-radius:25px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+
+}
+
+.chat-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:30px;
+
+    border-bottom:1px solid #e5e7eb;
+
+}
+
+.chat-title{
+
+    display:flex;
+
+    gap:18px;
+
+    align-items:center;
+
+}
+
+.chat-icon{
+
+    width:65px;
+
+    height:65px;
+
+    border-radius:18px;
+
+    background:#e0e7ff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:#4f46e5;
+
+}
+
+.chat-title h2{
+
+    font-size:30px;
+
+    color:#0f172a;
+
+}
+
+.chat-title p{
+
+    color:#64748b;
+
+}
+
+.clear-btn{
+
+    border:none;
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+    padding:12px 22px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    display:flex;
+
+    gap:10px;
+
+    align-items:center;
+
+    font-size:16px;
+
+}
+
+.chat-body{
+
+    flex:1;
+
+    overflow-y:auto;
+
+    padding:35px;
+
+    background:#f8fafc;
+
+}
+
+.empty-chat{
+
+    height:100%;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+}
+
+.empty-icon{
+
+    font-size:80px;
+
+    margin-bottom:25px;
+
+}
+
+.empty-chat h2{
+
+    font-size:40px;
+
+    color:#0f172a;
+
+}
+
+.empty-chat p{
+
+    margin-top:15px;
+
+    max-width:500px;
+
+    color:#64748b;
+
+    line-height:1.8;
+
+    font-size:18px;
+
+}
+
+.chat-input{
+
+    display:flex;
+
+    gap:15px;
+
+    padding:25px;
+
+    border-top:1px solid #e5e7eb;
+
+}
+
+.chat-input input{
+
+    flex:1;
+
+    padding:18px 22px;
+
+    border-radius:15px;
+
+    border:2px solid #dbe4f1;
+
+    outline:none;
+
+    font-size:17px;
+
+}
+
+.chat-input input:focus{
+
+    border-color:#4f46e5;
+
+}
+
+.chat-input button{
+
+    width:180px;
+
+    border:none;
+
+    border-radius:15px;
+
+    background:linear-gradient(
+        135deg,
+        #4f46e5,
+        #2563eb
+    );
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.chat-input button:disabled{
+
+    opacity:.5;
+
+    cursor:not-allowed;
+
+}

@@ -1,18 +1,45 @@
+import "../styles/sourcecard.css";
+
+import {
+  Globe,
+  ExternalLink,
+} from "lucide-react";
+
 export default function SourceCard({ source }) {
   return (
     <a
       href={source}
       target="_blank"
       rel="noreferrer"
-      className="block rounded-xl border border-slate-700 bg-slate-800 p-4 transition hover:border-cyan-500 hover:bg-slate-700"
+      className="source-card"
     >
-      <div className="font-semibold">
-        📄 Source
+      <div className="source-left">
+
+        <div className="source-icon">
+
+          <Globe size={22} />
+
+        </div>
+
+        <div>
+
+          <h4>
+            Website Source
+          </h4>
+
+          <p>
+            {source}
+          </p>
+
+        </div>
+
       </div>
 
-      <div className="mt-2 break-all text-sm text-slate-300">
-        {source}
-      </div>
+      <ExternalLink
+        size={18}
+        className="external-icon"
+      />
+
     </a>
   );
 }

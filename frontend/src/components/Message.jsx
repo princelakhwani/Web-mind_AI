@@ -1,4 +1,8 @@
+import "../styles/message.css";
+
 import ReactMarkdown from "react-markdown";
+import { Bot, User, Copy } from "lucide-react";
+
 import SourceCard from "./SourceCard";
 
 export default function Message({
@@ -8,65 +12,88 @@ export default function Message({
 }) {
   const isUser = role === "user";
 
-  return (
-    <div
-      className={`mb-8 flex ${
-        isUser ? "justify-end" : "justify-start"
-      }`}
-    >
-      <div
-        className={`max-w-4xl rounded-2xl p-5 shadow-lg ${
-          isUser
-            ? "bg-cyan-600 text-white"
-            : "border border-slate-700 bg-slate-900"
-        }`}
-      >
-        <div className="mb-3 flex items-center gap-2">
+  async function copyMessage() {
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
-          <div className="text-2xl">
-            {isUser ? "👤" : "🤖"}
+  return (
+    <div className={`message ${isUser ? "user" : "assistant"}`}>
+
+      <div className="message-header">
+
+        <div className="message-user">
+
+          <div className="avatar">
+
+            {isUser ? (
+              <User size={18} />
+            ) : (
+              <Bot size={18} />
+            )}
+
           </div>
 
-          <span className="font-semibold">
-            {isUser ? "You" : "Web-Mind AI"}
-          </span>
+          <div>
+
+            <h4>
+              {isUser ? "You" : "Web-Mind AI"}
+            </h4>
+
+            <span>
+              {isUser ? "Question" : "Answer"}
+            </span>
+
+          </div>
 
         </div>
 
-        <div className="prose prose-invert max-w-none">
+        {!isUser && (
 
-          <ReactMarkdown>
-            {content}
-          </ReactMarkdown>
+          <button
+            className="copy-btn"
+            onClick={copyMessage}
+          >
+            <Copy size={16} />
 
-        </div>
+            Copy
 
-        {!isUser && sources.length > 0 && (
-
-          <>
-
-            <div className="my-5 border-t border-slate-700" />
-
-            <h3 className="mb-4 font-semibold text-cyan-400">
-              Sources
-            </h3>
-
-            <div className="space-y-3">
-
-              {sources.map((source) => (
-                <SourceCard
-                  key={source}
-                  source={source}
-                />
-              ))}
-
-            </div>
-
-          </>
+          </button>
 
         )}
 
       </div>
+
+      <div className="message-body">
+
+        <ReactMarkdown>
+          {content}
+        </ReactMarkdown>
+
+      </div>
+
+      {!isUser && sources.length > 0 && (
+
+        <div className="message-sources">
+
+          <h4>
+            Sources
+          </h4>
+
+          {sources.map((source) => (
+            <SourceCard
+              key={source}
+              source={source}
+            />
+          ))}
+
+        </div>
+
+      )}
+
     </div>
   );
 }
