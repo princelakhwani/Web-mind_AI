@@ -1,0 +1,23 @@
+# Virtual Environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# Vector Database
+data/chroma/
+
+# Scraped files
+data/scraped/
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
