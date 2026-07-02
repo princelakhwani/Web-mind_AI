@@ -1,14 +1,16 @@
+import threading
+
 from fastapi import APIRouter, HTTPException
 
+from app.core.progress import progress
 from app.core.scraper import WebsiteScraper
 from app.core.rag import RAGPipeline
-from app.core.crawler import WebsiteCrawler
 from app.schemas import URLRequest, SearchRequest, AskRequest
+from app.services.index_service import index_website
 
 router = APIRouter()
 
 scraper = WebsiteScraper()
-crawler = WebsiteCrawler()
 rag = RAGPipeline()
 
 
@@ -26,12 +28,20 @@ def health():
     }
 
 
+@router.get("/progress")
+def get_progress():
+    return progress.get()
+
+
 @router.post("/clear")
 def clear():
     try:
         return rag.clear_database()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 @router.post("/scrape")
@@ -47,64 +57,26 @@ def scrape(request: URLRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/index")
-def index(request: URLRequest):
-    try:
-
-        pages = crawler.crawl(
-            request.url,
-            max_pages=20
-        )
-
-        indexed = 0
-        errors = []
-
-        for page in pages:
-
-            try:
-
-                print(f"Indexing: {page}")
-
-                text = scraper.scrape(page)
-
-                if not text.strip():
-                    raise Exception("Empty page")
-
-                rag.index(
-                    text=text,
-                    source=page
-                )
-
-                indexed += 1
-
-            except Exception as e:
-
-                print(f"FAILED: {page}")
-
-                print(e)
-
-                errors.append(
-                    {
-                        "page": page,
-                        "error": str(e)
-                    }
-                )
-
-        return {
-            "status": "success",
-            "pages_found": len(pages),
-            "pages_indexed": indexed,
-            "errors": errors
-        }
-
-    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=str(e)
         )
+
+
+@router.post("/index")
+def index(request: URLRequest):
+
+    thread = threading.Thread(
+        target=index_website,
+        args=(request.url,),
+        daemon=True,
+    )
+
+    thread.start()
+
+    return {
+        "status": "started"
+    }
 
 
 @router.post("/search")
@@ -117,14 +89,19 @@ def search(request: SearchRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 @router.post("/ask")
 def ask(request: AskRequest):
     try:
-
         return rag.ask(request.question)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

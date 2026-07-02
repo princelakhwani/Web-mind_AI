@@ -7,14 +7,26 @@ import {
   Globe,
   LoaderCircle,
   CheckCircle2,
+  Database,
+  BrainCircuit,
+  Boxes,
   FileText,
-  Layers,
 } from "lucide-react";
 
 export default function UrlForm({ onIndexed }) {
   const [url, setUrl] = useState("");
+
   const [loading, setLoading] = useState(false);
+
   const [stats, setStats] = useState(null);
+
+  const [progress, setProgress] = useState({
+    percentage: 0,
+    current: 0,
+    total: 0,
+    page: "",
+    status: "idle",
+  });
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -24,22 +36,57 @@ export default function UrlForm({ onIndexed }) {
     try {
       setLoading(true);
 
-      const response = await api.post("/index", {
+      setStats(null);
+
+      setProgress({
+        percentage: 0,
+        current: 0,
+        total: 0,
+        page: "",
+        status: "indexing",
+      });
+
+      await api.post("/index", {
         url,
       });
 
-      setStats({
-        url,
-        pagesFound: response.data.pages_found,
-        pagesIndexed: response.data.pages_indexed,
-      });
+      const interval = setInterval(async () => {
+        try {
+          const res = await api.get("/progress");
 
-      onIndexed(url);
+          setProgress(res.data);
 
+          if (res.data.status === "completed") {
+            clearInterval(interval);
+
+            setLoading(false);
+
+            if (res.data.result) {
+              setStats({
+                website: res.data.result.website,
+                pagesFound: res.data.result.pages_found,
+                pagesIndexed: res.data.result.pages_indexed,
+                chunks: res.data.result.chunks,
+                llm: res.data.result.llm,
+                embeddingModel:
+                  res.data.result.embedding_model,
+              });
+
+              onIndexed(url);
+            }
+          }
+        } catch (err) {
+          clearInterval(interval);
+
+          setLoading(false);
+
+          alert("Indexing failed.");
+        }
+      }, 500);
     } catch (err) {
-      alert("Failed to index website.");
-    } finally {
       setLoading(false);
+
+      alert("Failed to start indexing.");
     }
   }
 
@@ -53,22 +100,19 @@ export default function UrlForm({ onIndexed }) {
         </div>
 
         <div>
-
           <h2>Index Website</h2>
 
           <p>
             Build your AI knowledge base
           </p>
-
         </div>
 
       </div>
 
       <form
-        onSubmit={handleSubmit}
         className="url-form"
+        onSubmit={handleSubmit}
       >
-
         <input
           type="url"
           placeholder="https://python.langchain.com"
@@ -83,8 +127,9 @@ export default function UrlForm({ onIndexed }) {
             <>
               <LoaderCircle
                 className="spin"
-                size={20}
+                size={18}
               />
+
               Indexing...
             </>
           ) : (
@@ -93,63 +138,142 @@ export default function UrlForm({ onIndexed }) {
             </>
           )}
         </button>
-
       </form>
 
-      {stats && (
+      {loading && (
+        <div className="progress-card">
 
-        <div className="stats">
+          <h3>
+            🌐 Crawling Website
+          </h3>
+
+          <div className="progress-bar">
+
+            <div
+              className="progress-fill"
+              style={{
+                width: `${progress.percentage}%`,
+              }}
+            />
+
+          </div>
+
+          <p>
+            <strong>
+              {progress.percentage}%
+            </strong>{" "}
+            Complete
+          </p>
+
+          <p>
+            {progress.current} / {progress.total} Pages Indexed
+          </p>
+
+          <small>
+            {progress.page}
+          </small>
+
+        </div>
+      )}
+
+      {stats && (
+        <div className="website-info">
 
           <div className="success">
 
             <CheckCircle2
-              size={26}
+              size={24}
             />
 
             <div>
 
               <h3>
-                Website Indexed
+                Website Indexed Successfully
               </h3>
 
               <p>
-                Ready for chatting
+                {stats.website}
               </p>
 
             </div>
 
           </div>
 
-          <div className="stats-grid">
+          <div className="info-grid">
 
-            <div className="stat-box">
+            <div className="info-item">
 
-              <FileText size={24} />
+              <FileText size={18} />
 
-              <span>Pages Found</span>
+              <span>
+                Pages Found
+              </span>
 
-              <h2>
+              <strong>
                 {stats.pagesFound}
-              </h2>
+              </strong>
 
             </div>
 
-            <div className="stat-box">
+            <div className="info-item">
 
-              <Layers size={24} />
+              <Database size={18} />
 
-              <span>Pages Indexed</span>
+              <span>
+                Pages Indexed
+              </span>
 
-              <h2>
+              <strong>
                 {stats.pagesIndexed}
-              </h2>
+              </strong>
+
+            </div>
+
+            <div className="info-item">
+
+              <Boxes size={18} />
+
+              <span>
+                Chunks
+              </span>
+
+              <strong>
+                {stats.chunks}
+              </strong>
+
+            </div>
+
+            <div className="info-item">
+
+              <BrainCircuit size={18} />
+
+              <span>
+                LLM
+              </span>
+
+              <strong>
+                {stats.llm}
+              </strong>
+
+            </div>
+
+            <div className="info-item">
+
+              <Globe size={18} />
+
+              <span>
+                Embedding
+              </span>
+
+              <strong>
+                {stats.embeddingModel}
+              </strong>
 
             </div>
 
           </div>
 
         </div>
-
       )}
 
     </div>

@@ -29,12 +29,7 @@ class RAGPipeline:
         )
 
     def index(self, text: str, source: str) -> Dict:
-        """
-        Index website into ChromaDB.
-        If indexed again, replace the old chunks.
-        """
 
-        # Remove previous chunks from same source
         existing = vectorstore.get()
 
         ids_to_delete = []
@@ -139,10 +134,9 @@ class RAGPipeline:
 Answer ONLY from the provided context.
 
 Rules:
-
 - Never hallucinate.
 - Never make up facts.
-- If answer is unavailable, say:
+- If answer is unavailable say:
 'I couldn't find that information in the indexed website.'
 
 Context:
@@ -174,6 +168,15 @@ Context:
             "answer": answer,
             "sources": list(sources)
         }
+
+    def total_chunks(self):
+
+        data = vectorstore.get()
+
+        if not data["ids"]:
+            return 0
+
+        return len(data["ids"])
 
     def clear_database(self):
 
