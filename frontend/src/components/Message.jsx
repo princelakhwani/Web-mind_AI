@@ -5,19 +5,25 @@ export default function Message({ role, content, sources = [] }) {
 
   return (
     <div
-      className={`mb-6 flex ${
+      className={`mb-8 flex ${
         isUser ? "justify-end" : "justify-start"
       }`}
     >
       <div
-        className={`max-w-4xl rounded-2xl px-5 py-4 ${
+        className={`max-w-4xl rounded-2xl p-5 shadow-lg ${
           isUser
             ? "bg-cyan-600 text-white"
-            : "bg-slate-900 border border-slate-800"
+            : "border border-slate-700 bg-slate-900 text-white"
         }`}
       >
-        <div className="mb-2 font-semibold">
-          {isUser ? "👤 You" : "🤖 Web-Mind AI"}
+        <div className="mb-3 flex items-center gap-2">
+          <div className="text-2xl">
+            {isUser ? "👤" : "🤖"}
+          </div>
+
+          <span className="font-semibold">
+            {isUser ? "You" : "Web-Mind AI"}
+          </span>
         </div>
 
         <div className="prose prose-invert max-w-none">
@@ -25,18 +31,27 @@ export default function Message({ role, content, sources = [] }) {
         </div>
 
         {!isUser && sources.length > 0 && (
-          <div className="mt-5 border-t border-slate-700 pt-4">
-            <p className="mb-2 font-semibold">Sources</p>
+          <>
+            <div className="my-5 border-t border-slate-700" />
 
-            {sources.map((source) => (
-              <div
-                key={source}
-                className="mb-2 rounded-lg bg-slate-800 px-3 py-2 text-sm break-all"
-              >
-                {source}
-              </div>
-            ))}
-          </div>
+            <p className="mb-3 font-semibold text-cyan-400">
+              Sources
+            </p>
+
+            <div className="space-y-3">
+              {sources.map((source) => (
+                <a
+                  key={source}
+                  href={source}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded-lg border border-slate-700 bg-slate-800 p-3 transition hover:border-cyan-500 hover:bg-slate-700"
+                >
+                  📄 {source}
+                </a>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

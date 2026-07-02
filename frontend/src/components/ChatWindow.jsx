@@ -6,7 +6,6 @@ import Message from "./Message";
 export default function ChatWindow({ indexed }) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [messages, setMessages] = useState([]);
 
   async function askAI(e) {
@@ -32,7 +31,6 @@ export default function ChatWindow({ indexed }) {
     setQuestion("");
 
     try {
-
       setLoading(true);
 
       const response = await api.post("/ask", {
@@ -47,8 +45,8 @@ export default function ChatWindow({ indexed }) {
           sources: response.data.sources || [],
         },
       ]);
-
     } catch (err) {
+      console.error(err);
 
       setMessages((prev) => [
         ...prev,
@@ -58,18 +56,19 @@ export default function ChatWindow({ indexed }) {
           sources: [],
         },
       ]);
-
     } finally {
-
       setLoading(false);
-
     }
   }
 
   return (
-    <section>
+    <section className="mt-10 w-full">
 
-      <div className="mb-8 h-[500px] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <h2 className="mb-6 text-2xl font-bold">
+        💬 AI Chat
+      </h2>
+
+      <div className="mb-8 h-[550px] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
 
         {messages.length === 0 ? (
           <div className="mt-40 text-center text-slate-500">
@@ -87,8 +86,9 @@ export default function ChatWindow({ indexed }) {
         )}
 
         {loading && (
-          <div className="animate-pulse text-cyan-400">
-            🤖 Thinking...
+          <div className="flex items-center gap-3 animate-pulse text-cyan-400">
+            🤖
+            <span>Thinking...</span>
           </div>
         )}
 
@@ -100,17 +100,24 @@ export default function ChatWindow({ indexed }) {
       >
 
         <input
+          type="text"
           value={question}
+          disabled={!indexed || loading}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask anything about the indexed website..."
-          className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-5 py-4 outline-none focus:border-cyan-500"
+          placeholder={
+            indexed
+              ? "Ask anything about the indexed website..."
+              : "Index a website first..."
+          }
+          className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-5 py-4 outline-none focus:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
         />
 
         <button
-          disabled={loading}
-          className="rounded-xl bg-cyan-500 px-8 font-semibold hover:bg-cyan-600"
+          type="submit"
+          disabled={!indexed || loading}
+          className="rounded-xl bg-cyan-500 px-8 font-semibold transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Send
+          {loading ? "Thinking..." : "🚀 Send"}
         </button>
 
       </form>
