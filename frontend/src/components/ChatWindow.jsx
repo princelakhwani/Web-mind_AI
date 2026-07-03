@@ -1,6 +1,7 @@
 import "../styles/chatwindow.css";
 
 import { useEffect, useRef, useState } from "react";
+
 import {
   MessageSquare,
   Send,
@@ -13,7 +14,10 @@ import Loader from "./Loader";
 import Message from "./Message";
 import SuggestedQuestions from "./SuggestedQuestions";
 
-export default function ChatWindow({ indexed }) {
+export default function ChatWindow({
+  indexed,
+  website,
+}) {
 
   const [question, setQuestion] = useState("");
 
@@ -24,26 +28,60 @@ export default function ChatWindow({ indexed }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
+
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
+
   }, [messages, loading]);
+
+  /*
+      Whenever a website is indexed
+      clear previous chat automatically
+  */
+
+  useEffect(() => {
+
+    if (!website) return;
+
+    setMessages([]);
+
+    setQuestion("");
+
+  }, [website]);
 
   async function sendQuestion(text) {
 
     if (!indexed) {
+
       alert("Please index a website first.");
+
       return;
+
     }
 
     if (!text.trim()) return;
 
     setMessages((prev) => [
+
       ...prev,
+
       {
+
         role: "user",
+
         content: text,
+
+        time: new Date().toLocaleTimeString([], {
+
+          hour: "2-digit",
+
+          minute: "2-digit",
+
+        }),
+
       },
+
     ]);
 
     setQuestion("");
@@ -53,27 +91,59 @@ export default function ChatWindow({ indexed }) {
       setLoading(true);
 
       const response = await api.post("/ask", {
+
         question: text,
+
       });
 
       setMessages((prev) => [
+
         ...prev,
+
         {
+
           role: "assistant",
+
           content: response.data.answer,
+
           sources: response.data.sources || [],
+
+          time: new Date().toLocaleTimeString([], {
+
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+          }),
+
         },
+
       ]);
 
     } catch {
 
       setMessages((prev) => [
+
         ...prev,
+
         {
+
           role: "assistant",
+
           content: "❌ Failed to generate answer.",
+
           sources: [],
+
+          time: new Date().toLocaleTimeString([], {
+
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+          }),
+
         },
+
       ]);
 
     } finally {
@@ -81,6 +151,7 @@ export default function ChatWindow({ indexed }) {
       setLoading(false);
 
     }
+
   }
 
   function askAI(e) {
@@ -94,6 +165,8 @@ export default function ChatWindow({ indexed }) {
   function clearChat() {
 
     setMessages([]);
+
+    setQuestion("");
 
   }
 
@@ -116,7 +189,9 @@ export default function ChatWindow({ indexed }) {
             <h2>AI Assistant</h2>
 
             <p>
+
               Ask questions about your indexed website
+
             </p>
 
           </div>
@@ -124,8 +199,11 @@ export default function ChatWindow({ indexed }) {
         </div>
 
         <button
+
           onClick={clearChat}
+
           className="clear-btn"
+
         >
 
           <Trash2 size={18} />
@@ -158,7 +236,7 @@ export default function ChatWindow({ indexed }) {
 
               Once your website is indexed,
               I can answer questions using
-              the indexed content.
+              only the indexed content.
 
             </p>
 
@@ -177,10 +255,17 @@ export default function ChatWindow({ indexed }) {
         {messages.map((msg, index) => (
 
           <Message
+
             key={index}
+
             role={msg.role}
+
             content={msg.content}
+
             sources={msg.sources}
+
+            time={msg.time}
+
           />
 
         ))}
@@ -192,32 +277,51 @@ export default function ChatWindow({ indexed }) {
       </div>
 
       <form
+
         onSubmit={askAI}
+
         className="chat-input"
+
       >
 
         <input
+
           type="text"
+
           value={question}
+
           disabled={!indexed || loading}
+
           placeholder={
+
             indexed
+
               ? "Ask anything about this website..."
+
               : "Index a website first..."
+
           }
+
           onChange={(e) =>
+
             setQuestion(e.target.value)
+
           }
+
         />
 
         <button
+
           disabled={!indexed || loading}
+
         >
 
           <Send size={20} />
 
           {loading
+
             ? "Thinking..."
+
             : "Send"}
 
         </button>

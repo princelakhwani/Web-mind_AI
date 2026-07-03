@@ -66,6 +66,9 @@ def scrape(request: URLRequest):
 @router.post("/index")
 def index(request: URLRequest):
 
+    # Immediately clear old progress
+    progress.preparing()
+
     thread = threading.Thread(
         target=index_website,
         args=(
@@ -74,6 +77,7 @@ def index(request: URLRequest):
         ),
         daemon=True,
     )
+
     thread.start()
 
     return {

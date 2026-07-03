@@ -10,6 +10,10 @@ rag = RAGPipeline()
 
 def index_website(url: str, max_pages: int):
     try:
+
+        # ⭐ IMPORTANT: Remove previous website embeddings
+        rag.clear_database()
+
         pages = crawler.crawl(
             url,
             max_pages=max_pages,
@@ -25,6 +29,7 @@ def index_website(url: str, max_pages: int):
             progress.update(i, page)
 
             try:
+
                 print(f"Indexing {page}")
 
                 text = scraper.scrape(page)
@@ -40,6 +45,11 @@ def index_website(url: str, max_pages: int):
                 indexed += 1
 
             except Exception as e:
+
+                print(f"FAILED: {page}")
+
+                print(e)
+
                 errors.append(
                     {
                         "page": page,

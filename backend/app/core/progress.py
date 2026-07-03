@@ -10,12 +10,22 @@ class ProgressManager:
         self.current_page = ""
         self.result = None
 
+    def preparing(self):
+        """
+        Called immediately when a new indexing request arrives.
+        Prevents the frontend from showing the previous website.
+        """
+        self.status = "indexing"
+        self.current = 0
+        self.total = 0
+        self.current_page = "Preparing website..."
+        self.result = None
+
     def start(self, total):
         self.status = "indexing"
         self.current = 0
         self.total = total
         self.current_page = ""
-        self.result = None
 
     def update(self, current, page):
         self.current = current

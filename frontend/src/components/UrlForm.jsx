@@ -1,6 +1,6 @@
 import "../styles/urlform.css";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import api from "../services/api";
 
 import {
@@ -29,60 +29,80 @@ export default function UrlForm({ onIndexed }) {
     status: "idle",
   });
 
+  // Only one polling interval
+  const intervalRef = useRef(null);
+
+  function stopPolling() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }
+
+  function startPolling(currentUrl) {
+    stopPolling();
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const res = await api.get("/progress");
+
+        setProgress(res.data);
+
+        if (res.data.status === "completed") {
+          stopPolling();
+
+          setLoading(false);
+
+          if (res.data.result) {
+            setStats({
+              website: res.data.result.website,
+              pagesFound: res.data.result.pages_found,
+              pagesIndexed: res.data.result.pages_indexed,
+              chunks: res.data.result.chunks,
+              llm: res.data.result.llm,
+              embeddingModel:
+                res.data.result.embedding_model,
+            });
+
+            onIndexed(currentUrl);
+          }
+        }
+      } catch (err) {
+        stopPolling();
+        setLoading(false);
+        alert("Indexing failed.");
+      }
+    }, 500);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
     if (!url.trim()) return;
 
+    stopPolling();
+
+    setLoading(true);
+
+    setStats(null);
+
+    setProgress({
+      percentage: 0,
+      current: 0,
+      total: 0,
+      page: "Preparing website...",
+      status: "indexing",
+    });
+
     try {
-      setLoading(true);
-
-      setStats(null);
-
-      setProgress({
-        percentage: 0,
-        current: 0,
-        total: 0,
-        page: "",
-        status: "indexing",
-      });
-
       await api.post("/index", {
         url,
         max_pages: maxPages,
       });
 
-      const interval = setInterval(async () => {
-        try {
-          const res = await api.get("/progress");
-
-          setProgress(res.data);
-
-          if (res.data.status === "completed") {
-            clearInterval(interval);
-
-            setLoading(false);
-
-            if (res.data.result) {
-              setStats({
-                website: res.data.result.website,
-                pagesFound: res.data.result.pages_found,
-                pagesIndexed: res.data.result.pages_indexed,
-                chunks: res.data.result.chunks,
-                llm: res.data.result.llm,
-                embeddingModel: res.data.result.embedding_model,
-              });
-
-              onIndexed(url);
-            }
-          }
-        } catch {
-          clearInterval(interval);
-          setLoading(false);
-          alert("Indexing failed.");
-        }
-      }, 500);
-    } catch {
+      startPolling(url);
+    } catch (err) {
+      stopPolling();
       setLoading(false);
       alert("Failed to start indexing.");
     }
@@ -172,14 +192,25 @@ export default function UrlForm({ onIndexed }) {
           </div>
 
           <p>
-            <strong>{progress.percentage}%</strong> Complete
+
+            <strong>
+              {progress.percentage}%
+            </strong>{" "}
+            Complete
+
           </p>
 
           <p>
+
             {progress.current} / {progress.total} Pages Indexed
+
           </p>
 
-          <small>{progress.page}</small>
+          <small>
+
+            {progress.page || "Preparing website..."}
+
+          </small>
 
         </div>
 
@@ -195,9 +226,13 @@ export default function UrlForm({ onIndexed }) {
 
             <div>
 
-              <h3>Website Indexed Successfully</h3>
+              <h3>
+                Website Indexed Successfully
+              </h3>
 
-              <p>{stats.website}</p>
+              <p>
+                {stats.website}
+              </p>
 
             </div>
 
@@ -206,31 +241,31 @@ export default function UrlForm({ onIndexed }) {
           <div className="info-grid">
 
             <div className="info-item">
-              <FileText size={18}/>
+              <FileText size={18} />
               <span>Pages Found</span>
               <strong>{stats.pagesFound}</strong>
             </div>
 
             <div className="info-item">
-              <Database size={18}/>
+              <Database size={18} />
               <span>Pages Indexed</span>
               <strong>{stats.pagesIndexed}</strong>
             </div>
 
             <div className="info-item">
-              <Boxes size={18}/>
+              <Boxes size={18} />
               <span>Chunks</span>
               <strong>{stats.chunks}</strong>
             </div>
 
             <div className="info-item">
-              <BrainCircuit size={18}/>
+              <BrainCircuit size={18} />
               <span>LLM</span>
               <strong>{stats.llm}</strong>
             </div>
 
             <div className="info-item">
-              <Globe size={18}/>
+              <Globe size={18} />
               <span>Embedding</span>
               <strong>{stats.embeddingModel}</strong>
             </div>

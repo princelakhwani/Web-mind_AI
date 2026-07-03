@@ -9,7 +9,9 @@ export default function Message({
   role,
   content,
   sources = [],
+  time,
 }) {
+
   const isUser = role === "user";
 
   async function copyMessage() {
@@ -39,12 +41,22 @@ export default function Message({
 
           <div>
 
-            <h4>
-              {isUser ? "You" : "Web-Mind AI"}
-            </h4>
+            <div className="message-title">
 
-            <span>
-              {isUser ? "Question" : "Answer"}
+              <h4>
+                {isUser ? "You" : "Web-Mind AI"}
+              </h4>
+
+              {time && (
+                <span className="message-time">
+                  {time}
+                </span>
+              )}
+
+            </div>
+
+            <span className="message-role">
+              {isUser ? "Question" : "AI Assistant"}
             </span>
 
           </div>
@@ -57,6 +69,7 @@ export default function Message({
             className="copy-btn"
             onClick={copyMessage}
           >
+
             <Copy size={16} />
 
             Copy
@@ -80,14 +93,16 @@ export default function Message({
         <div className="message-sources">
 
           <h4>
-            Sources
+            📚 Sources
           </h4>
 
           {sources.map((source) => (
+
             <SourceCard
               key={source}
               source={source}
             />
+
           ))}
 
         </div>

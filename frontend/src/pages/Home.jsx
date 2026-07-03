@@ -7,10 +7,15 @@ import UrlForm from "../components/UrlForm";
 import ChatWindow from "../components/ChatWindow";
 
 export default function Home() {
+
   const [indexed, setIndexed] = useState(false);
+
   const [website, setWebsite] = useState("");
 
+  const [sessionId, setSessionId] = useState(0);
+
   return (
+
     <div className="home">
 
       <Navbar />
@@ -20,12 +25,16 @@ export default function Home() {
         <section className="hero">
 
           <h1>
+
             Chat with Any <span>Website</span>
+
           </h1>
 
           <p>
+
             Crawl an entire website, build an AI knowledge base,
             and chat with your own local AI assistant.
+
           </p>
 
         </section>
@@ -34,12 +43,18 @@ export default function Home() {
 
           <UrlForm
             onIndexed={(url) => {
+
               setWebsite(url);
+
               setIndexed(true);
+
+              setSessionId((prev) => prev + 1);
+
             }}
           />
 
           <ChatWindow
+            key={sessionId}
             indexed={indexed}
             website={website}
           />
@@ -49,5 +64,7 @@ export default function Home() {
       </main>
 
     </div>
+
   );
+
 }
