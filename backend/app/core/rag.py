@@ -8,6 +8,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.core.llm import llm
 from app.core.vectorstore import vectorstore
+from app.core.session import session
 
 
 class RAGPipeline:
@@ -30,13 +31,19 @@ class RAGPipeline:
 
     def index(self, text: str, source: str) -> Dict:
 
+        website = session.get_website()
+
         existing = vectorstore.get()
 
         ids_to_delete = []
 
         if existing["ids"]:
             for idx, meta in zip(existing["ids"], existing["metadatas"]):
-                if meta.get("source") == source:
+
+                if (
+                    meta.get("website") == website
+                    and meta.get("source") == source
+                ):
                     ids_to_delete.append(idx)
 
         if ids_to_delete:
@@ -45,8 +52,9 @@ class RAGPipeline:
         document = Document(
             page_content=text,
             metadata={
-                "source": source
-            }
+                "website": website,
+                "source": source,
+            },
         )
 
         chunks = self.splitter.split_documents([document])
@@ -56,26 +64,32 @@ class RAGPipeline:
         for i in range(len(chunks)):
             ids.append(
                 hashlib.md5(
-                    f"{source}-{i}".encode()
+                    f"{website}-{source}-{i}".encode()
                 ).hexdigest()
             )
 
         vectorstore.add_documents(
             documents=chunks,
-            ids=ids
+            ids=ids,
         )
 
         return {
             "status": "success",
+            "website": website,
             "source": source,
-            "chunks": len(chunks)
+            "chunks": len(chunks),
         }
 
     def search(self, query: str, k: int = 4) -> List[Dict]:
 
+        website = session.get_website()
+
         results = vectorstore.similarity_search_with_score(
             query=query,
-            k=k
+            k=k,
+            filter={
+                "website": website
+            },
         )
 
         output = []
@@ -93,7 +107,7 @@ class RAGPipeline:
                 {
                     "content": doc.page_content,
                     "source": doc.metadata.get("source", ""),
-                    "score": float(score)
+                    "score": float(score),
                 }
             )
 
@@ -101,14 +115,25 @@ class RAGPipeline:
 
     def ask(self, question: str):
 
+        website = session.get_website()
+
         docs = vectorstore.similarity_search(
             question,
-            k=4
+            k=4,
+            filter={
+                "website": website
+            },
         )
+
+        if len(docs) == 0:
+            return {
+                "answer": "I couldn't find that information in the indexed website.",
+                "sources": [],
+            }
 
         context = ""
 
-        sources = set()
+        sources = []
 
         seen = set()
 
@@ -121,33 +146,37 @@ class RAGPipeline:
 
             context += doc.page_content + "\n\n"
 
-            sources.add(
-                doc.metadata.get("source", "")
-            )
+            source = doc.metadata.get("source", "")
+
+            if source not in sources:
+                sources.append(source)
 
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
-                    """You are Web-Mind AI.
+                    """
+You are Web-Mind AI.
 
-Answer ONLY from the provided context.
+Answer ONLY using the provided website context.
 
 Rules:
+
 - Never hallucinate.
-- Never make up facts.
-- If answer is unavailable say:
-'I couldn't find that information in the indexed website.'
+- Never invent information.
+- If the answer is not in the context, reply:
+
+"I couldn't find that information in the indexed website."
 
 Context:
 
 {context}
-"""
+""",
                 ),
                 (
                     "human",
-                    "{question}"
-                )
+                    "{question}",
+                ),
             ]
         )
 
@@ -160,32 +189,38 @@ Context:
         answer = chain.invoke(
             {
                 "context": context,
-                "question": question
+                "question": question,
             }
         )
 
         return {
             "answer": answer,
-            "sources": list(sources)
+            "sources": sources,
         }
 
     def total_chunks(self):
+
+        website = session.get_website()
 
         data = vectorstore.get()
 
         if not data["ids"]:
             return 0
 
-        return len(data["ids"])
+        count = 0
+
+        for meta in data["metadatas"]:
+            if meta.get("website") == website:
+                count += 1
+
+        return count
 
     def clear_database(self):
 
         data = vectorstore.get()
 
         if data["ids"]:
-            vectorstore.delete(
-                ids=data["ids"]
-            )
+            vectorstore.delete(ids=data["ids"])
 
         return {
             "status": "Database Cleared"

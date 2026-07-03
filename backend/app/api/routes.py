@@ -74,7 +74,6 @@ def index(request: URLRequest):
         ),
         daemon=True,
     )
-
     thread.start()
 
     return {

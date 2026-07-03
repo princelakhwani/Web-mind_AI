@@ -1,15 +1,24 @@
 import "../styles/chatwindow.css";
 
-import { useState, useEffect, useRef } from "react";
-import { Send, Trash2, Bot } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  MessageSquare,
+  Send,
+  Trash2,
+} from "lucide-react";
 
 import api from "../services/api";
-import Message from "./Message";
+
 import Loader from "./Loader";
+import Message from "./Message";
+import SuggestedQuestions from "./SuggestedQuestions";
 
 export default function ChatWindow({ indexed }) {
+
   const [question, setQuestion] = useState("");
+
   const [loading, setLoading] = useState(false);
+
   const [messages, setMessages] = useState([]);
 
   const bottomRef = useRef(null);
@@ -20,33 +29,31 @@ export default function ChatWindow({ indexed }) {
     });
   }, [messages, loading]);
 
-  async function askAI(e) {
-    e.preventDefault();
+  async function sendQuestion(text) {
 
     if (!indexed) {
       alert("Please index a website first.");
       return;
     }
 
-    if (!question.trim()) return;
-
-    const currentQuestion = question;
+    if (!text.trim()) return;
 
     setMessages((prev) => [
       ...prev,
       {
         role: "user",
-        content: currentQuestion,
+        content: text,
       },
     ]);
 
     setQuestion("");
 
     try {
+
       setLoading(true);
 
       const response = await api.post("/ask", {
-        question: currentQuestion,
+        question: text,
       });
 
       setMessages((prev) => [
@@ -57,26 +64,42 @@ export default function ChatWindow({ indexed }) {
           sources: response.data.sources || [],
         },
       ]);
+
     } catch {
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Failed to generate answer.",
+          content: "❌ Failed to generate answer.",
           sources: [],
         },
       ]);
+
     } finally {
+
       setLoading(false);
+
     }
   }
 
+  function askAI(e) {
+
+    e.preventDefault();
+
+    sendQuestion(question);
+
+  }
+
   function clearChat() {
+
     setMessages([]);
+
   }
 
   return (
-    <div className="chat-card">
+
+    <div className="chat-window">
 
       <div className="chat-header">
 
@@ -84,7 +107,7 @@ export default function ChatWindow({ indexed }) {
 
           <div className="chat-icon">
 
-            <Bot size={28} />
+            <MessageSquare size={28} />
 
           </div>
 
@@ -93,7 +116,7 @@ export default function ChatWindow({ indexed }) {
             <h2>AI Assistant</h2>
 
             <p>
-              Ask anything from your indexed website
+              Ask questions about your indexed website
             </p>
 
           </div>
@@ -101,9 +124,10 @@ export default function ChatWindow({ indexed }) {
         </div>
 
         <button
-          className="clear-btn"
           onClick={clearChat}
+          className="clear-btn"
         >
+
           <Trash2 size={18} />
 
           Clear Chat
@@ -116,21 +140,35 @@ export default function ChatWindow({ indexed }) {
 
         {messages.length === 0 && (
 
-          <div className="empty-chat">
+          <div className="chat-empty">
 
-            <div className="empty-icon">
+            <div className="robot">
+
               🤖
+
             </div>
 
             <h2>
+
               Ask me anything
+
             </h2>
 
             <p>
+
               Once your website is indexed,
               I can answer questions using
-              only that website's content.
+              the indexed content.
+
             </p>
+
+            {indexed && (
+
+              <SuggestedQuestions
+                onAsk={sendQuestion}
+              />
+
+            )}
 
           </div>
 
@@ -154,8 +192,8 @@ export default function ChatWindow({ indexed }) {
       </div>
 
       <form
-        className="chat-input"
         onSubmit={askAI}
+        className="chat-input"
       >
 
         <input
@@ -164,7 +202,7 @@ export default function ChatWindow({ indexed }) {
           disabled={!indexed || loading}
           placeholder={
             indexed
-              ? "Ask your question..."
+              ? "Ask anything about this website..."
               : "Index a website first..."
           }
           onChange={(e) =>
@@ -176,7 +214,7 @@ export default function ChatWindow({ indexed }) {
           disabled={!indexed || loading}
         >
 
-          <Send size={18} />
+          <Send size={20} />
 
           {loading
             ? "Thinking..."
@@ -187,5 +225,7 @@ export default function ChatWindow({ indexed }) {
       </form>
 
     </div>
+
   );
+
 }
